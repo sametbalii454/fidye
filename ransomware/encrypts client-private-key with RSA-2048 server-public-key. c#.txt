@@ -1,0 +1,43 @@
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
+public class EncryptionHelper
+{
+    public static byte[] EncryptPrivateKeyWithRSA(byte[] privateKey, string serverPublicKey)
+    {
+        byte[] encryptedPrivateKey;
+
+        using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
+        {
+            // Load the server's public key
+            rsa.FromXmlString(serverPublicKey);
+
+            // Encrypt the private key with RSA
+            encryptedPrivateKey = rsa.Encrypt(privateKey, true);
+        }
+
+        return encryptedPrivateKey;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // Client's private key to be encrypted
+        byte[] privateKey = Encoding.UTF8.GetBytes("This is the private key");
+
+        // Server's public key in XML format
+        string serverPublicKey = "<RSAKeyValue><Modulus>...</Modulus><Exponent>...</Exponent></RSAKeyValue>";
+
+        // Encrypt the private key with RSA
+        byte[] encryptedPrivateKey = EncryptionHelper.EncryptPrivateKeyWithRSA(privateKey, serverPublicKey);
+
+        // Convert the encrypted private key to a string for storage or transmission
+        string encryptedPrivateKeyString = Convert.ToBase64String(encryptedPrivateKey);
+
+        Console.WriteLine("Client's private key encrypted with RSA successfully.");
+        Console.WriteLine("Encrypted Private Key: " + encryptedPrivateKeyString);
+    }
+}

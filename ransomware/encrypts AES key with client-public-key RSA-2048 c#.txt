@@ -1,0 +1,43 @@
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
+public class EncryptionHelper
+{
+    public static byte[] EncryptAESKeyWithRSA(byte[] aesKey, string clientPublicKey)
+    {
+        byte[] encryptedKey;
+        
+        using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
+        {
+            // Load the client's public key
+            rsa.FromXmlString(clientPublicKey);
+            
+            // Encrypt the AES key with RSA
+            encryptedKey = rsa.Encrypt(aesKey, true);
+        }
+
+        return encryptedKey;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // AES key to be encrypted
+        byte[] aesKey = Encoding.UTF8.GetBytes("This is the AES key");
+        
+        // Client's public key in XML format
+        string clientPublicKey = "<RSAKeyValue><Modulus>...</Modulus><Exponent>...</Exponent></RSAKeyValue>";
+        
+        // Encrypt the AES key with RSA
+        byte[] encryptedKey = EncryptionHelper.EncryptAESKeyWithRSA(aesKey, clientPublicKey);
+        
+        // Convert the encrypted key to a string for storage or transmission
+        string encryptedKeyString = Convert.ToBase64String(encryptedKey);
+        
+        Console.WriteLine("AES key encrypted with RSA successfully.");
+        Console.WriteLine("Encrypted Key: " + encryptedKeyString);
+    }
+}

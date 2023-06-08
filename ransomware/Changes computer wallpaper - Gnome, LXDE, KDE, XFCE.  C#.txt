@@ -1,0 +1,48 @@
+using System;
+using System.Diagnostics;
+
+public class WallpaperChanger
+{
+    public static void ChangeWallpaperGnome(string imagePath)
+    {
+        // Use gsettings command-line tool to change wallpaper in Gnome
+        Process.Start("gsettings", $"set org.gnome.desktop.background picture-uri file://{imagePath}");
+    }
+
+    public static void ChangeWallpaperLXDE(string imagePath)
+    {
+        // Use pcmanfm command-line tool to change wallpaper in LXDE
+        Process.Start("pcmanfm", $"--set-wallpaper={imagePath}");
+    }
+
+    public static void ChangeWallpaperKDE(string imagePath)
+    {
+        // Use kwriteconfig5 command-line tool to change wallpaper in KDE
+        Process.Start("kwriteconfig5", $"--file kwinrc --group Desktop --key Wallpaper {imagePath}");
+        Process.Start("kwriteconfig5", $"--file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --key Image {imagePath}");
+        Process.Start("kwriteconfig5", $"--file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --key FillMode 2");
+        Process.Start("kwriteconfig5", $"--file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --key Color 0,0,0");
+    }
+
+    public static void ChangeWallpaperXFCE(string imagePath)
+    {
+        // Use xfconf-query command-line tool to change wallpaper in XFCE
+        Process.Start("xfconf-query", $"-c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s {imagePath}");
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        string imagePath = "path/to/your/image.jpg";
+
+        // Change wallpaper for different desktop environments
+        WallpaperChanger.ChangeWallpaperGnome(imagePath);
+        WallpaperChanger.ChangeWallpaperLXDE(imagePath);
+        WallpaperChanger.ChangeWallpaperKDE(imagePath);
+        WallpaperChanger.ChangeWallpaperXFCE(imagePath);
+
+        Console.WriteLine("Wallpaper changed successfully for different desktop environments.");
+    }
+}

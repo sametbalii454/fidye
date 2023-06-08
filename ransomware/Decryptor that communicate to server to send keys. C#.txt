@@ -1,0 +1,72 @@
+using System;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+
+public class Decryptor
+{
+    private static HttpClient client = new HttpClient();
+
+    public static byte[] RetrieveEncryptionKeysFromServer(string serverUrl)
+    {
+        byte[] encryptionKeys;
+
+        // Make an HTTP request to the server to retrieve the encryption keys
+        HttpResponseMessage response = client.GetAsync(serverUrl).Result;
+
+        // Check if the request was successful
+        if (response.IsSuccessStatusCode)
+        {
+            // Read the response content (encryption keys)
+            encryptionKeys = response.Content.ReadAsByteArrayAsync().Result;
+        }
+        else
+        {
+            throw new Exception("Failed to retrieve encryption keys from the server.");
+        }
+
+        return encryptionKeys;
+    }
+
+    public static byte[] DecryptData(byte[] encryptedData, byte[] encryptionKeys)
+    {
+        byte[] decryptedData;
+
+        using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+        {
+            aes.Key = encryptionKeys; // Set the encryption key
+            aes.Mode = CipherMode.CBC; // Set the encryption mode
+            aes.Padding = PaddingMode.PKCS7; // Set the padding mode
+
+            // Decrypt the data
+            using (ICryptoTransform decryptor = aes.CreateDecryptor())
+            {
+                decryptedData = decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+            }
+        }
+
+        return decryptedData;
+    }
+
+    public static void Main()
+    {
+        string serverUrl = "https://example.com/encryption-keys-endpoint";
+
+        try
+        {
+            // Retrieve the encryption keys from the server
+            byte[] encryptionKeys = RetrieveEncryptionKeysFromServer(serverUrl);
+
+            // Decrypt the data using the encryption keys
+            byte[] encryptedData = Convert.FromBase64String("..."); // Replace with your encrypted data
+            byte[] decryptedData = DecryptData(encryptedData, encryptionKeys);
+
+            string decryptedText = Encoding.UTF8.GetString(decryptedData);
+            Console.WriteLine("Decrypted Data: " + decryptedText);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+    }
+}

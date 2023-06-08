@@ -1,0 +1,100 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+
+public class AesEncryptionExample
+{
+    private static readonly string Passphrase = "MySecretPassphrase123"; // Hardcoded passphrase
+
+    public static byte[] EncryptStringToBytes(string plainText, byte[] key, byte[] iv)
+    {
+        byte[] encryptedBytes;
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+
+            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
+                    {
+                        streamWriter.Write(plainText);
+                    }
+
+                    encryptedBytes = memoryStream.ToArray();
+                }
+            }
+        }
+
+        return encryptedBytes;
+    }
+
+    public static string DecryptBytesToString(byte[] encryptedBytes, byte[] key, byte[] iv)
+    {
+        string decryptedText;
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+
+            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+            using (MemoryStream memoryStream = new MemoryStream(encryptedBytes))
+            {
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                {
+                    using (StreamReader streamReader = new StreamReader(cryptoStream))
+                    {
+                        decryptedText = streamReader.ReadToEnd();
+                    }
+                }
+            }
+        }
+
+        return decryptedText;
+    }
+
+    public static byte[] DeriveKey(string passphrase)
+    {
+        using (Rfc2898DeriveBytes keyDerivation = new Rfc2898DeriveBytes(passphrase, Encoding.UTF8.GetBytes("SaltValue123")))
+        {
+            return keyDerivation.GetBytes(32); // 256-bit key size (32 bytes)
+        }
+    }
+
+    public static byte[] GenerateIV()
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.GenerateIV();
+            return aes.IV;
+        }
+    }
+
+    public static void Main()
+    {
+        string originalText = "Hello, AES encryption!";
+        Console.WriteLine("Original Text: " + originalText);
+
+        // Derive the key from the passphrase
+        byte[] key = DeriveKey(Passphrase);
+
+        // Generate a new IV for each encryption
+        byte[] iv = GenerateIV();
+
+        // Encrypt the original text
+        byte[] encryptedBytes = EncryptStringToBytes(originalText, key, iv);
+        Console.WriteLine("Encrypted Bytes: " + Convert.ToBase64String(encryptedBytes));
+
+        // Decrypt the encrypted bytes
+        string decryptedText = DecryptBytesToString(encryptedBytes, key, iv);
+        Console.WriteLine("Decrypted Text: " + decryptedText);
+    }
+}

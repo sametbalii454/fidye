@@ -1,0 +1,70 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+
+public class FileEncryptor
+{
+    private static byte[] GenerateRandomKey()
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.GenerateKey();
+            return aes.Key;
+        }
+    }
+
+    private static byte[] GenerateRandomIV()
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.GenerateIV();
+            return aes.IV;
+        }
+    }
+
+    public static void EncryptFile(string inputFile, string outputFile, string password)
+    {
+        byte[] key = GenerateRandomKey();
+        byte[] iv = GenerateRandomIV();
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+
+            // Generate a new random salt for password-based key derivation
+            byte[] salt = new byte[16];
+            using (RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider())
+            {
+                rngCsp.GetBytes(salt);
+            }
+
+            // Derive a new key from the password and salt
+            Rfc2898DeriveBytes keyDerivation = new Rfc2898DeriveBytes(password, salt);
+            aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
+
+            // Encrypt the file
+            using (FileStream inputFileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream outputFileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+            using (CryptoStream cryptoStream = new CryptoStream(outputFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                // Write the salt to the output file
+                outputFileStream.Write(salt, 0, salt.Length);
+
+                // Encrypt the file content
+                inputFileStream.CopyTo(cryptoStream);
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        string inputFile = "path/to/input/file";
+        string outputFile = "path/to/output/file";
+        string password = "your_password";
+
+        EncryptFile(inputFile, outputFile, password);
+
+        Console.WriteLine("File encrypted successfully.");
+    }
+}

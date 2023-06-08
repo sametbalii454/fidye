@@ -1,0 +1,55 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+
+public class FileEncryptor
+{
+    public static void EncryptFile(string inputFile, string outputFile, byte[] key, byte[] iv)
+    {
+        using (AesManaged aes = new AesManaged())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+
+            // Create an encryptor to perform the stream transformation
+            ICryptoTransform encryptor = aes.CreateEncryptor();
+
+            using (FileStream inputFileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                using (FileStream outputFileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream(outputFileStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        // Read the input file and encrypt its contents
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+
+                        while ((bytesRead = inputFileStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            cryptoStream.Write(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        string inputFile = "path_to_input_file";
+        string outputFile = "path_to_output_file";
+
+        // Generate a 256-bit key and a 128-bit IV (Initialization Vector)
+        byte[] key = new byte[32]; // 256 bits
+        byte[] iv = new byte[16];  // 128 bits
+
+        // TODO: Generate secure random values for the key and IV
+
+        FileEncryptor.EncryptFile(inputFile, outputFile, key, iv);
+        
+        Console.WriteLine("File encrypted successfully.");
+    }
+}

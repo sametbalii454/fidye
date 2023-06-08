@@ -1,0 +1,63 @@
+using System;
+using System.Net;
+
+public class WebServer
+{
+    private const string ServerUrl = "http://localhost:8080/";
+
+    public static void Main()
+    {
+        // Create a new HttpListener instance
+        HttpListener listener = new HttpListener();
+
+        // Add the server URL to listen to
+        listener.Prefixes.Add(ServerUrl);
+
+        try
+        {
+            // Start the listener
+            listener.Start();
+            Console.WriteLine("Web server started. Listening for requests...");
+
+            // Handle incoming requests
+            while (true)
+            {
+                // Wait for an incoming request
+                HttpListenerContext context = listener.GetContext();
+
+                // Handle the request in a separate method
+                HandleRequest(context);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+        finally
+        {
+            // Stop and close the listener
+            listener.Stop();
+            listener.Close();
+        }
+    }
+
+    private static void HandleRequest(HttpListenerContext context)
+    {
+        // Get the request and response objects
+        HttpListenerRequest request = context.Request;
+        HttpListenerResponse response = context.Response;
+
+        // Set the response content type
+        response.ContentType = "text/plain";
+
+        // Set the response status code and message
+        response.StatusCode = 200;
+        response.StatusDescription = "OK";
+
+        // Write a response message
+        string responseMessage = "Hello from the web server!";
+        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseMessage);
+        response.OutputStream.Write(buffer, 0, buffer.Length);
+        response.OutputStream.Close();
+    }
+}

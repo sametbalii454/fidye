@@ -1,0 +1,50 @@
+using System;
+using System.Security.Cryptography;
+
+public class RandomKeyGenerator
+{
+    public static byte[] GenerateRandomKey(int keySize)
+    {
+        byte[] key = new byte[keySize];
+        
+        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+        {
+            // Generate a random key
+            rng.GetBytes(key);
+        }
+
+        return key;
+    }
+
+    public static byte[] GenerateRandomIV(int ivSize)
+    {
+        byte[] iv = new byte[ivSize];
+        
+        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+        {
+            // Generate a random IV
+            rng.GetBytes(iv);
+        }
+
+        return iv;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        int keySize = 32; // 256 bits
+        int ivSize = 16;  // 128 bits
+
+        // Generate a random AES key
+        byte[] aesKey = RandomKeyGenerator.GenerateRandomKey(keySize);
+
+        // Generate a random IV
+        byte[] iv = RandomKeyGenerator.GenerateRandomIV(ivSize);
+
+        // Use the generated key and IV for file encryption
+
+        Console.WriteLine("Random AES key and IV generated successfully.");
+    }
+}
