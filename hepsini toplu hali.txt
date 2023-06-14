@@ -1,0 +1,552 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net;
+
+public class AesEncryptionExample
+{
+    private static readonly byte[] Key = Encoding.UTF8.GetBytes("0123456789abcdef"); // 16-byte key for AES-128
+    private static readonly byte[] IV = Encoding.UTF8.GetBytes("abcdef9876543210"); // 16-byte IV
+
+    public static byte[] EncryptStringToBytes(string plainText)
+    {
+        byte[] encryptedBytes;
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = Key;
+            aes.IV = IV;
+
+            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
+                    {
+                        streamWriter.Write(plainText);
+                    }
+
+                    encryptedBytes = memoryStream.ToArray();
+                }
+            }
+        }
+
+        return encryptedBytes;
+    }
+
+    public static string DecryptBytesToString(byte[] encryptedBytes)
+    {
+        string decryptedText;
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = Key;
+            aes.IV = IV;
+
+            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+            using (MemoryStream memoryStream = new MemoryStream(encryptedBytes))
+            {
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                {
+                    using (StreamReader streamReader = new StreamReader(cryptoStream))
+                    {
+                        decryptedText = streamReader.ReadToEnd();
+                    }
+                }
+            }
+        }
+
+        return decryptedText;
+    }
+
+    public static void Main()
+    {
+        string originalText = "Hello, AES encryption!";
+        Console.WriteLine("Original Text: " + originalText);
+
+        // Encrypt the original text
+        byte[] encryptedBytes = EncryptStringToBytes(originalText);
+        Console.WriteLine("Encrypted Bytes: " + Convert.ToBase64String(encryptedBytes));
+
+        // Decrypt the encrypted bytes
+        string decryptedText = DecryptBytesToString(encryptedBytes);
+        Console.WriteLine("Decrypted Text: " + decryptedText);
+    }
+}
+public class FileEncryptor
+{
+    public static void EncryptFile(string inputFile, string outputFile, byte[] key, byte[] iv)
+    {
+        using (AesManaged aes = new AesManaged())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+
+            // Create an encryptor to perform the stream transformation
+            ICryptoTransform encryptor = aes.CreateEncryptor();
+
+            using (FileStream inputFileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                using (FileStream outputFileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream(outputFileStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        // Read the input file and encrypt its contents
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+
+                        while ((bytesRead = inputFileStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            cryptoStream.Write(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        string inputFile = "path_to_input_file";
+        string outputFile = "path_to_output_file";
+
+        // Generate a 256-bit key and a 128-bit IV (Initialization Vector)
+        byte[] key = new byte[32]; // 256 bits
+        byte[] iv = new byte[16];  // 128 bits
+
+        // TODO: Generate secure random values for the key and IV
+
+        FileEncryptor.EncryptFile(inputFile, outputFile, key, iv);
+        
+        Console.WriteLine("File encrypted successfully.");
+    }
+}
+public class WallpaperChanger
+{
+    public static void ChangeWallpaperGnome(string imagePath)
+    {
+        // Use gsettings command-line tool to change wallpaper in Gnome
+        Process.Start("gsettings", $"set org.gnome.desktop.background picture-uri file://{imagePath}");
+    }
+
+    public static void ChangeWallpaperLXDE(string imagePath)
+    {
+        // Use pcmanfm command-line tool to change wallpaper in LXDE
+        Process.Start("pcmanfm", $"--set-wallpaper={imagePath}");
+    }
+
+    public static void ChangeWallpaperKDE(string imagePath)
+    {
+        // Use kwriteconfig5 command-line tool to change wallpaper in KDE
+        Process.Start("kwriteconfig5", $"--file kwinrc --group Desktop --key Wallpaper {imagePath}");
+        Process.Start("kwriteconfig5", $"--file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --key Image {imagePath}");
+        Process.Start("kwriteconfig5", $"--file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --key FillMode 2");
+        Process.Start("kwriteconfig5", $"--file plasma-org.kde.plasma.desktop-appletsrc --group Containments --group 1 --group Wallpaper --key Color 0,0,0");
+    }
+
+    public static void ChangeWallpaperXFCE(string imagePath)
+    {
+        // Use xfconf-query command-line tool to change wallpaper in XFCE
+        Process.Start("xfconf-query", $"-c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s {imagePath}");
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        string imagePath = "path/to/your/image.jpg";
+
+        // Change wallpaper for different desktop environments
+        WallpaperChanger.ChangeWallpaperGnome(imagePath);
+        WallpaperChanger.ChangeWallpaperLXDE(imagePath);
+        WallpaperChanger.ChangeWallpaperKDE(imagePath);
+        WallpaperChanger.ChangeWallpaperXFCE(imagePath);
+
+        Console.WriteLine("Wallpaper changed successfully for different desktop environments.");
+    }
+}
+
+public class ServerCommunication
+{
+    public static string RetrievePrivateKeyFromServer(string serverUrl)
+    {
+        string privateKey = string.Empty;
+
+        using (HttpClient client = new HttpClient())
+        {
+            // Make an HTTP request to the server to retrieve the private key
+            HttpResponseMessage response = client.GetAsync(serverUrl).Result;
+
+            // Check if the request was successful
+            if (response.IsSuccessStatusCode)
+            {
+                // Read the response content (private key)
+                privateKey = response.Content.ReadAsStringAsync().Result;
+            }
+        }
+
+        return privateKey;
+    }
+}
+
+public class DecryptionHelper
+{
+    public static string DecryptData(string encryptedData, string privateKey)
+    {
+        string decryptedData = string.Empty;
+
+        // TODO: Implement decryption logic using the private key
+
+        return decryptedData;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        string serverUrl = "https://example.com/private-key-endpoint";
+        
+        // Retrieve the client's private key from the server
+        string privateKey = ServerCommunication.RetrievePrivateKeyFromServer(serverUrl);
+ // Use the private key for decryption
+        string encryptedData = "encrypted data";
+        string decryptedData = DecryptionHelper.DecryptData(encryptedData, privateKey);
+
+        Console.WriteLine("Decrypted data: " + decryptedData);
+    }
+}
+public class Decryptor
+{
+    private static HttpClient client = new HttpClient();
+
+    public static byte[] RetrieveEncryptionKeysFromServer(string serverUrl)
+    {
+        byte[] encryptionKeys;
+
+        // Make an HTTP request to the server to retrieve the encryption keys
+        HttpResponseMessage response = client.GetAsync(serverUrl).Result;
+
+        // Check if the request was successful
+        if (response.IsSuccessStatusCode)
+        {
+            // Read the response content (encryption keys)
+            encryptionKeys = response.Content.ReadAsByteArrayAsync().Result;
+        }
+        else
+        {
+            throw new Exception("Failed to retrieve encryption keys from the server.");
+        }
+
+        return encryptionKeys;
+    }
+
+    public static byte[] DecryptData(byte[] encryptedData, byte[] encryptionKeys)
+    {
+        byte[] decryptedData;
+
+        using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+        {
+            aes.Key = encryptionKeys; // Set the encryption key
+            aes.Mode = CipherMode.CBC; // Set the encryption mode
+            aes.Padding = PaddingMode.PKCS7; // Set the padding mode
+
+            // Decrypt the data
+            using (ICryptoTransform decryptor = aes.CreateDecryptor())
+            {
+                decryptedData = decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+            }
+        }
+
+        return decryptedData;
+    }
+
+    public static void Main()
+    {
+        string serverUrl = "https://example.com/encryption-keys-endpoint";
+
+        try
+        {
+            // Retrieve the encryption keys from the server
+            byte[] encryptionKeys = RetrieveEncryptionKeysFromServer(serverUrl);
+
+            // Decrypt the data using the encryption keys
+            byte[] encryptedData = Convert.FromBase64String("..."); // Replace with your encrypted data
+            byte[] decryptedData = DecryptData(encryptedData, encryptionKeys);
+
+            string decryptedText = Encoding.UTF8.GetString(decryptedData);
+            Console.WriteLine("Decrypted Data: " + decryptedText);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+    }
+}
+public class FileEncryptor
+{
+    private static byte[] GenerateRandomKey()
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.GenerateKey();
+            return aes.Key;
+        }
+    }
+
+    private static byte[] GenerateRandomIV()
+    {
+        using (Aes aes = Aes.Create())
+        {
+            aes.GenerateIV();
+            return aes.IV;
+        }
+    }
+
+    public static void EncryptFile(string inputFile, string outputFile, string password)
+    {
+        byte[] key = GenerateRandomKey();
+        byte[] iv = GenerateRandomIV();
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = key;
+            aes.IV = iv;
+
+            // Generate a new random salt for password-based key derivation
+            byte[] salt = new byte[16];
+            using (RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider())
+            {
+                rngCsp.GetBytes(salt);
+            }
+
+            // Derive a new key from the password and salt
+            Rfc2898DeriveBytes keyDerivation = new Rfc2898DeriveBytes(password, salt);
+            aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
+
+            // Encrypt the file
+            using (FileStream inputFileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream outputFileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+            using (CryptoStream cryptoStream = new CryptoStream(outputFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                // Write the salt to the output file
+                outputFileStream.Write(salt, 0, salt.Length);
+
+                // Encrypt the file content
+                inputFileStream.CopyTo(cryptoStream);
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        string inputFile = "path/to/input/file";
+        string outputFile = "path/to/output/file";
+        string password = "your_password";
+
+        EncryptFile(inputFile, outputFile, password);
+
+        Console.WriteLine("File encrypted successfully.");
+    }
+}
+public class EncryptionHelper
+{
+    public static byte[] EncryptAESKeyWithRSA(byte[] aesKey, string clientPublicKey)
+    {
+        byte[] encryptedKey;
+        
+        using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
+        {
+            // Load the client's public key
+            rsa.FromXmlString(clientPublicKey);
+            
+            // Encrypt the AES key with RSA
+            encryptedKey = rsa.Encrypt(aesKey, true);
+        }
+
+        return encryptedKey;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // AES key to be encrypted
+        byte[] aesKey = Encoding.UTF8.GetBytes("This is the AES key");
+        
+        // Client's public key in XML format
+        string clientPublicKey = "<RSAKeyValue><Modulus>...</Modulus><Exponent>...</Exponent></RSAKeyValue>";
+        
+        // Encrypt the AES key with RSA
+        byte[] encryptedKey = EncryptionHelper.EncryptAESKeyWithRSA(aesKey, clientPublicKey);
+        
+        // Convert the encrypted key to a string for storage or transmission
+        string encryptedKeyString = Convert.ToBase64String(encryptedKey);
+        
+        Console.WriteLine("AES key encrypted with RSA successfully.");
+        Console.WriteLine("Encrypted Key: " + encryptedKeyString);
+    }
+}
+public class EncryptionHelper
+{
+    public static byte[] EncryptPrivateKeyWithRSA(byte[] privateKey, string serverPublicKey)
+    {
+        byte[] encryptedPrivateKey;
+
+        using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
+        {
+            // Load the server's public key
+            rsa.FromXmlString(serverPublicKey);
+
+            // Encrypt the private key with RSA
+            encryptedPrivateKey = rsa.Encrypt(privateKey, true);
+        }
+
+        return encryptedPrivateKey;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // Client's private key to be encrypted
+        byte[] privateKey = Encoding.UTF8.GetBytes("This is the private key");
+
+        // Server's public key in XML format
+        string serverPublicKey = "<RSAKeyValue><Modulus>...</Modulus><Exponent>...</Exponent></RSAKeyValue>";
+
+        // Encrypt the private key with RSA
+        byte[] encryptedPrivateKey = EncryptionHelper.EncryptPrivateKeyWithRSA(privateKey, serverPublicKey);
+
+        // Convert the encrypted private key to a string for storage or transmission
+        string encryptedPrivateKeyString = Convert.ToBase64String(encryptedPrivateKey);
+
+        Console.WriteLine("Client's private key encrypted with RSA successfully.");
+        Console.WriteLine("Encrypted Private Key: " + encryptedPrivateKeyString);
+    }
+}
+public class RandomKeyGenerator
+{
+    public static byte[] GenerateRandomKey(int keySize)
+    {
+        byte[] key = new byte[keySize];
+        
+        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+        {
+            // Generate a random key
+            rng.GetBytes(key);
+        }
+
+        return key;
+    }
+
+    public static byte[] GenerateRandomIV(int ivSize)
+    {
+        byte[] iv = new byte[ivSize];
+        
+        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+        {
+            // Generate a random IV
+            rng.GetBytes(iv);
+        }
+
+        return iv;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        int keySize = 32; // 256 bits
+        int ivSize = 16;  // 128 bits
+
+        // Generate a random AES key
+        byte[] aesKey = RandomKeyGenerator.GenerateRandomKey(keySize);
+
+        // Generate a random IV
+        byte[] iv = RandomKeyGenerator.GenerateRandomIV(ivSize);
+
+        // Use the generated key and IV for file encryption
+
+        Console.WriteLine("Random AES key and IV generated successfully.");
+    }
+}
+
+
+public class WebServer
+{
+    private const string ServerUrl = "http://localhost:8080/";
+
+    public static void Main()
+    {
+        // Create a new HttpListener instance
+        HttpListener listener = new HttpListener();
+
+        // Add the server URL to listen to
+        listener.Prefixes.Add(ServerUrl);
+
+        try
+        {
+            // Start the listener
+            listener.Start();
+            Console.WriteLine("Web server started. Listening for requests...");
+
+            // Handle incoming requests
+            while (true)
+            {
+                // Wait for an incoming request
+                HttpListenerContext context = listener.GetContext();
+
+                // Handle the request in a separate method
+                HandleRequest(context);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+        finally
+        {
+            // Stop and close the listener
+            listener.Stop();
+            listener.Close();
+        }
+    }
+
+    private static void HandleRequest(HttpListenerContext context)
+    {
+        // Get the request and response objects
+        HttpListenerRequest request = context.Request;
+        HttpListenerResponse response = context.Response;
+
+        // Set the response content type
+        response.ContentType = "text/plain";
+
+        // Set the response status code and message
+        response.StatusCode = 200;
+        response.StatusDescription = "OK";
+
+        // Write a response message
+        string responseMessage = "Hello from the web server!";
+        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseMessage);
+        response.OutputStream.Write(buffer, 0, buffer.Length);
+        response.OutputStream.Close();
+    }
+}
+
+
+
+
