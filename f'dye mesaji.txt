@@ -1,0 +1,50 @@
+What Happened to My Computer?
+Your important files are encrypted.
+Many of your documents, photos, videos, databases and other files are no longer accessible because they have been encrypted. Maybe you are busy looking for a way to
+recover your files, but do not waste your time. Nobody can recover your files without our decryption service.
+
+Can I Recover My Files?
+Sure. We guarantee that you can recover all your files safely and easily. But you have not so enough time.
+You can decrypt some of your files for free. Try now by clicking .
+But if you want to decrypt all your files, you need to pay.
+You only have 3 days to submit the payment. After that the price will be doubled.
+Also, if you don’t pay in 7 days, you won’t be able to recover your files forever.
+We will have free events for users who are so poor that they couldn’t pay in 6 months.
+
+How Do I Pay?
+Payment is accepted in Bitcoin only. For more information, click .
+Please check the current price of Bitcoin and buy some bitcoins. For more information, click .
+And send the correct amount to the address specified in this window.
+After your payment, click . Best time to check: 9:00am – 11:00am GMT from Monday to Friday.
+Once the payment is checked, you can start decrypting your files immediately.
+
+Contact
+If you need our assistance, send a message by clicking .
+
+We strongly recommend you to not remove this software, and disable your anti-virus for a while, until you pay and the payment gets processed. If your anti-virus gets
+updated and removes this software automatically, it will not be able to recover your files even if you pay!
+
+It also drops batch and VBS script files, and a “readme” (contents are provided in the appendix).
+
+Just in case the user closed out the bright red dialog box, or doesn’t understand it, the attackers drop a text file to disk with further instruction. An example of their “readme” dropped to disk as “@Please_Read_Me@.txt” to many directories on the victim host. Note that the English written here is done well, with the exception of “How can I trust?”. To date, only two transactions appear to have been made with this 115p7UMMngoj1pMvkpHijcRdfJNXj6LrLn bitcoin address for almost $300:
+
+Q: What's wrong with my files?
+
+A: Ooops, your important files are encrypted. It means you will not be able to access them anymore until they are decrypted.
+If you follow our instructions, we guarantee that you can decrypt all your files quickly and safely!
+Let’s start decrypting!
+
+Q: What do I do?
+
+A: First, you need to pay service fees for the decryption.
+Please send $300 worth of bitcoin to this bitcoin address: 115p7UMMngoj1pMvkpHijcRdfJNXj6LrLn
+
+Next, please find an application file named “@WanaDecryptor@.exe”. It is the decrypt software.
+Run and follow the instructions! (You may need to disable your antivirus for a while.)
+
+Q: How can I trust?
+
+A: Don’t worry about decryption.
+We will decrypt your files surely because nobody will trust us if we cheat users.
+
+* If you need our assistance, send a message by clicking on the decryptor window.
