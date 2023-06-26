@@ -1,0 +1,79 @@
+Tam anlamıyla otomatik olarak başlayacak ve arka planda çalışacak bir Windows başlangıç uygulaması için ek adımlar gerekmektedir. İşte bu adımları izleyebilirsiniz:
+
+1. Windows Forms uygulamanızın başlangıçta otomatik olarak çalışmasını sağlamak için uygulamanızı bir Windows hizmetine dönüştürmeniz gerekmektedir.
+2. Visual Studio'da projenize sağ tıklayın ve "Yeni Öğe Ekle" seçeneğini seçin.
+3. "Yeni Öğe Ekle" penceresinde, "Hizmet" kategorisini seçin ve "Hizmet1" adlı bir hizmet ekleyin.
+4. "Hizmet1.cs" adlı yeni bir dosya eklenmiş olacak. Bu dosyayı açın ve aşağıdaki kodu ekleyin:
+
+```csharp
+using System.ServiceProcess;
+
+namespace YourApplicationNamespace
+{
+    public partial class Hizmet1 : ServiceBase
+    {
+        private MainForm mainForm;
+
+        public Hizmet1()
+        {
+            InitializeComponent();
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            mainForm = new MainForm();
+            mainForm.StartFileEncryption();
+        }
+
+        protected override void OnStop()
+        {
+            mainForm.StopFileEncryption();
+            mainForm.Dispose();
+        }
+    }
+}
+```
+
+Yukarıdaki kodda, `OnStart` metodunda ana formunuz olan `MainForm` oluşturulur ve `StartFileEncryption` metodu çağrılır. `OnStop` metodunda ise şifreleme işlemi durdurulur ve `MainForm` bellekten serbest bırakılır.
+
+5. `Hizmet1.cs` dosyasını kaydedin.
+
+6. `Program.cs` dosyasını açın ve aşağıdaki kodu ekleyin:
+
+```csharp
+using System;
+using System.Windows.Forms;
+using System.ServiceProcess;
+
+namespace YourApplicationNamespace
+{
+    static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            if (Environment.UserInteractive)
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MainForm());
+            }
+            else
+            {
+                ServiceBase[] ServicesToRun;
+                ServicesToRun = new ServiceBase[]
+                {
+                    new Hizmet1()
+                };
+                ServiceBase.Run(ServicesToRun);
+            }
+        }
+    }
+}
+```
+
+Yukarıdaki kodda, `Main` metodu içinde bir kontrol yapılır. Eğer uygulama kullanıcı etkileşimli olarak çalıştırılıyorsa, yani normal bir Windows Forms uygulaması olarak başlatılıyorsa, ana form görüntülenir ve şifreleme işlemi başlar. Eğer uygulama bir Windows hizmeti olarak çalıştırılıyorsa, yani arka planda otomatik olarak başlatılıyorsa, `Hizmet1` sınıfı çalıştırılır.
+
+7. Projeyi derleyin.
+
+8. Derleme sonucunda oluşan ".exe" dosyasını kullanarak bir Windows hizmeti oluşturmanız gerekmektedir. Bunun için komut istemcis
