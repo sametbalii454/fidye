@@ -1,0 +1,29 @@
+# Windows Forms uygulamanızı başlangıçta otomatik olarak çalışması için aşağıdaki adımları izleyebilirsiniz:
+
+Visual Studio'da Windows Forms uygulamanızı açın.
+Solution Explorer penceresinde, "Program.cs" adlı bir dosya göreceksiniz. Bu dosyayı çift tıklayarak açın.
+"Program.cs" dosyasında, Main metodu içindeki kodu bulun. Bu metot uygulamanızın başlangıç noktasını temsil eder.
+Main metodu içinde, Application.Run(new MainForm()); satırını bulun. Bu satır, MainForm adlı ana formunuzun uygulama çalıştırıldığında görüntülenmesini sağlar.
+İşte örnek bir Program.cs dosyası:
+
+csharp
+Copy code
+using System;
+using System.Windows.Forms;
+
+namespace YourApplicationNamespace
+{
+    static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
+    }
+}
+Yukarıdaki örnekte, Main metodu içindeki Application.Run(new MainForm()); satırı, MainForm adlı ana formunuzun uygulama başlangıcında çalışmasını sağlar. MainForm, kendi uygulamanızdaki ana formunuzun adıyla değiştirilmelidir.
+
+Bu şekilde, Windows başlangıcında uygulamanız otomatik olarak başlayacak ve MainForm görüntülenecektir. Daha sonra, belirlediğiniz olaylara (örneğin, bir butona tıklama gibi) bağlı olarak istediğiniz işlemleri gerçekleştirebilirsiniz.

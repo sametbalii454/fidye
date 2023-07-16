@@ -1,0 +1,10 @@
+@M45yhup34we168seSBcutrt452bli!@
+
+@M45y$hu&p34we;16//8seS**Bc-utr-/t452bli!@
+
+E1Q8JH5FvdhREIT4UGmŞIRTe7sNMrefB8CT=
+
+QGVzdGFydCBLZXkgQ29kZToga1VtMWhhbTdXaHc0aSE=
+private const string EncryptionKey = "@M45y$hu&p34we;16//8seS**Bc-utr-/t452bli!@"; // Şifreleme anahtarınızı buraya girin
+
+"RTFROEo1RnZkaFJFSTQVR2zIUVJUZTdzTk1yZWZCOENUPQ=="

